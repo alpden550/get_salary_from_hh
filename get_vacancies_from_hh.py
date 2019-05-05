@@ -9,6 +9,8 @@ PERIOD = 30
 HEADERS = {
     "User-Agent": 'HH-User-Agent',
 }
+LANGUAGES = ['JavaScript', 'Java', 'Python', 'Ruby',
+             'PHP', 'C++', 'C#', 'C', 'Go', 'Objective-C']
 
 
 def fetch_hh_api(search=''):
@@ -56,18 +58,20 @@ def process_language(language):
     all_vacancies = fetch_hh_api(language)
     salaries = get_salaries_from_vac(all_vacancies)
 
-    data = {
-        'vacancies_found': len(get_salaries_from_vac(salaries)),
-        'vacancies_processed': len(predict_rub_salary(salaries)),
-        'average_salary': int(sum(predict_rub_salary(salaries)) /
-                              len(predict_rub_salary(salaries))),
-    }
-    return {language: data}
+    vacancies_found = len(get_salaries_from_vac(salaries))
+    vacancies_processed = len(predict_rub_salary(salaries))
+    average_salary = int(sum(predict_rub_salary(salaries)) /
+                         len(predict_rub_salary(salaries)))
+
+    return (language, vacancies_found, vacancies_processed, average_salary)
+
+
+def process_all_languages_from_hh(languages=LANGUAGES):
+    result = []
+    for language in languages:
+        result.append(process_language(language))
+    return result
 
 
 if __name__ == "__main__":
-    languages = ['JavaScript', 'Java', 'Python', 'Ruby',
-                 'PHP', 'C++', 'C#', 'C', 'Go', 'Objective-C']
-
-    for language in languages:
-        print(process_language(language))
+    print(*process_all_languages_from_hh())
