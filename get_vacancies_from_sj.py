@@ -13,6 +13,8 @@ SJ_URL = 'https://api.superjob.ru/2.0/vacancies/'
 HEADERS = {
     'X-Api-App-Id': SJ_KEY,
 }
+LANGUAGES = ['JavaScript', 'Java', 'Python', 'Ruby',
+             'PHP', 'C++', 'C#', 'C', 'Go', 'Objective-C']
 
 
 def fetch_sj_api(search=''):
@@ -62,26 +64,29 @@ def process_vacancies(vacancies):
     return result
 
 
-def print_vacancies(language):
+def get_salary_for_language(language):
     all_vacancies = fetch_sj_api(language)
     processed_vacancies = process_vacancies(all_vacancies)
-    filtered_vacancies = list(filter(lambda x: x[2] is not None, processed_vacancies))
+    filtered_vacancies = list(
+        filter(lambda x: x[2] is not None, processed_vacancies))
     all_salary = [vacancy[2] for vacancy in filtered_vacancies]
     try:
         average_salary = int(sum(all_salary) / len(all_salary))
     except ZeroDivisionError:
-        average_salary = None
+        average_salary = 0
 
-    data = {
-        'vacancies_found': len(processed_vacancies),
-        'vacancies_processed': len(filtered_vacancies),
-        'average_salary': average_salary,
-    }
-    return {language: data}
+    vacancies_found = len(processed_vacancies)
+    vacancies_processed = len(filtered_vacancies)
+
+    return (language, vacancies_found, vacancies_processed, average_salary)
+
+
+def process_all_languages_from_sj(languages=LANGUAGES):
+    result = []
+    for language in languages:
+        result.append(get_salary_for_language(language))
+    return result
 
 
 if __name__ == "__main__":
-    languages = ['JavaScript', 'Java', 'Python', 'Ruby',
-                 'PHP', 'C++', 'C#', 'C', 'Go', 'Objective-C']
-    for language in languages:
-        print(print_vacancies(language))
+    print(*process_all_languages_from_sj())
